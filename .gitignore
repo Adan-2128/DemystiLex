@@ -1,0 +1,5 @@
+gemini.env
+flask_session/
+__pychache__/
+tts_cache/
+translation_cache/
