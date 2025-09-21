@@ -8,12 +8,4 @@ gTTS
 gunicorn
 pdfplumber
 python-dotenv
- os
-threading
-json
-uuid
-io
-hashlib
-logging
-re
 Werkzeug==2.2.2
