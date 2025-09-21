@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Dashboard - DemystiLex</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body style="display: flex; flex-direction: column;">
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand-link">
+                <h1 class="navbar-brand">DemystiLex</h1>
+            </a>
+            <div class="navbar-links">
+                <a href="/demystify">Demystify</a>
+                <a href="/tools">Tools</a>
+                <a href="/lawyer-links">Lawyer Links</a>
+                <a href="/translate">Translate</a>
+                <a href="/chatbot">LexiCounsel</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main class="main-content">
+        <div class="container" style="max-width: 900px;">
+            <h2 class="section-title">Activity Dashboard</h2>
+            <div class="card">
+                <h3 class="card-title">Your Recent Activity</h3>
+                <p class="card-subtitle">History is cleared when the server restarts.</p>
+                <div id="history-container">
+                    <p>Loading your history...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', async() => {
+            const historyContainer = document.getElementById('history-container');
+            try {
+                const response = await fetch('/api/history');
+                if (!response.ok) throw new Error('Failed to load history.');
+                const history = await response.json();
+
+                if (history.length === 0) {
+                    historyContainer.innerHTML = '<p>You have no activity yet. Try demystifying or translating a document!</p>';
+                    return;
+                }
+
+                historyContainer.innerHTML = ''; // Clear loading message
+                history.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.style.border = '1px solid var(--border-color)';
+                    itemDiv.style.borderRadius = '0.5rem';
+                    itemDiv.style.padding = '1rem';
+                    itemDiv.style.marginBottom = '1rem';
+
+                    let resultHtml = '';
+                    if (item.type === 'Demystification') {
+                        resultHtml = `<p><strong>Explanation:</strong> ${item.result.explanation.substring(0, 150)}...</p>`;
+                    } else if (item.type === 'Translation') {
+                        resultHtml = '<div><strong>Translations:</strong><ul>';
+                        for (const [lang, trans] of Object.entries(item.result.translations)) {
+                            if (trans.translated) {
+                                resultHtml += `<li><strong>${lang.toUpperCase()}:</strong> ${trans.translated.substring(0, 100)}...</li>`;
+                            }
+                        }
+                        resultHtml += '</ul></div>';
+                    }
+
+                    itemDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h4 style="color: var(--primary-color); font-size: 1.1rem;">
+                            <i class="fas ${item.type === 'Demystification' ? 'fa-magic' : 'fa-language'}"></i>
+                            ${item.type}
+                        </h4>
+                        <span style="font-size: 0.8rem; color: var(--secondary-color);">${item.timestamp}</span>
+                    </div>
+                    <p style="font-style: italic; color: var(--secondary-color); margin-bottom: 1rem;">
+                        <strong>Original:</strong> "${item.content_preview}"
+                    </p>
+                    ${resultHtml}
+                `;
+                    historyContainer.appendChild(itemDiv);
+                });
+
+            } catch (error) {
+                historyContainer.innerHTML = `<p style="color: var(--red-500);">Could not load your history. ${error.message}</p>`;
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const activePage = window.location.pathname;
+            document.querySelectorAll('.navbar-links a').forEach(link => {
+                if (link.getAttribute('href') === activePage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

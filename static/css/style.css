@@ -1,0 +1,362 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root {
+    --primary-color: #3b82f6;
+    --secondary-color: #6b7280;
+    --background-start-rgb: 29, 42, 82;
+    --background-end-rgb: 19, 28, 52;
+    --card-bg-color: rgba(255, 255, 255, 0.05);
+    --text-color: #e5e7eb;
+    --border-color: rgba(255, 255, 255, 0.2);
+    --blue-600: #2563eb;
+    --red-500: #ef4444;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: linear-gradient(135deg, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb)));
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+
+/* --- Navbar --- */
+
+.navbar {
+    background-color: rgba(19, 28, 52, 0.7);
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.navbar-brand {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.navbar-links a {
+    color: #fff;
+    padding: 0 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.navbar-links a:hover {
+    color: var(--primary-color);
+}
+
+.navbar-links a.active {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+
+/* --- Main Content & Cards --- */
+
+.main-content {
+    padding: 3rem 0;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+.card-subtitle {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 2rem auto;
+    color: var(--secondary-color);
+}
+
+.card {
+    background-color: var(--card-bg-color);
+    padding: 2rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    height: 100%;
+    transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.card-description {
+    color: var(--secondary-color);
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 1.5rem 0;
+}
+
+
+/* --- Clickable Card Styles --- */
+
+.card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.card-link:hover .card {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+
+/* --- Auth Pages (Login/Register) --- */
+
+.auth-page .navbar .container {
+    justify-content: center;
+}
+
+.auth-page .navbar-links {
+    display: none;
+}
+
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 1.5rem;
+    min-height: calc(100vh - 75px);
+}
+
+.form-card {
+    width: 100%;
+    max-width: 450px;
+}
+
+.form-title {
+    font-size: 2rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+
+/* --- Forms & Buttons --- */
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+input,
+select,
+textarea {
+    font-family: inherit;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    width: 100%;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary {
+    background-color: var(--blue-600);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+.btn-tts {
+    background-color: var(--secondary-color);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s ease;
+}
+
+.btn-tts:hover {
+    background-color: var(--primary-color);
+}
+
+
+/* --- Chat UI --- */
+
+#demystify-chat-history,
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-right: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.chat-message {
+    display: flex;
+    max-width: 85%;
+}
+
+.chat-bubble {
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+.chat-message-user {
+    align-self: flex-end;
+}
+
+.chat-message-user .chat-bubble {
+    background-color: var(--primary-color);
+    color: #fff;
+    border-bottom-right-radius: 0;
+}
+
+.chat-message-bot {
+    align-self: flex-start;
+}
+
+.chat-message-bot .chat-bubble {
+    background-color: #374151;
+    color: var(--text-color);
+    border-bottom-left-radius: 0;
+}
+
+.chat-footer {
+    position: sticky;
+    bottom: 0;
+    background-color: #131c34;
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 0;
+}
+
+.chat-input-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+
+/* --- Mind Map --- */
+
+#mindmap {
+    width: 100%;
+    min-height: 450px;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    overflow: auto;
+}
+
+#mindmap svg {
+    width: 100%;
+    height: 100%;
+}
+
+
+/* --- Feedback Messages --- */
+
+.feedback-message {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.feedback-error {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.feedback-success {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}

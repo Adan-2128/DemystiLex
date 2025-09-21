@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translate Document - DemystiLex</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand-link">
+                <h1 class="navbar-brand">DemystiLex</h1>
+            </a>
+            <div class="navbar-links">
+                <a href="/demystify">Demystify</a>
+                <a href="/tools">Tools</a>
+                <a href="/lawyer-links">Lawyer Links</a>
+                <a href="/translate">Translate</a>
+                <a href="/chatbot">LexiCounsel</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container" style="max-width: 800px;">
+            <h2 class="section-title">Translate Your Document</h2>
+            <div class="card">
+                <div class="form-group">
+                    <label for="text-input">Enter Text or Upload Document</label>
+                    <textarea id="text-input" rows="8" placeholder="Paste your text here..."></textarea>
+                    <input type="file" id="file-input" accept=".txt,.pdf" style="margin-top: 1rem;">
+                </div>
+                <div class="form-group">
+                    <label for="language-select">Select Target Languages</label>
+                    <select id="language-select" multiple style="height: 150px;">
+                        <option value="es">Spanish</option><option value="fr">French</option>
+                        <option value="de">German</option><option value="hi">Hindi</option>
+                        <option value="ja">Japanese</option><option value="ko">Korean</option>
+                        <option value="zh-CN">Chinese (Simplified)</option>
+                    </select>
+                </div>
+                <button id="translate-button" class="btn-primary">Translate</button>
+            </div>
+
+            <div id="loading" style="display: none; text-align: center; margin-top: 2rem;">
+                <p>Translating... This may take a moment.</p>
+            </div>
+            <div id="translation-results" style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;"></div>
+        </div>
+    </main>
+
+    <script src="/static/js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const translateButton = document.getElementById('translate-button');
+            const loadingIndicator = document.getElementById('loading');
+            const resultsContainer = document.getElementById('translation-results');
+            const languageSelect = document.getElementById('language-select');
+
+            // --- MODIFIED: playAudio function now accepts the specific audio player to control ---
+            const playAudio = async(text, button, audioPlayer) => {
+                const revertButton = addLoadingState(button, '<i class="fas fa-spinner fa-spin"></i>');
+                try {
+                    const response = await fetch('/api/speak', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            text
+                        })
+                    });
+                    if (!response.ok) throw new Error('Failed to generate audio.');
+
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.style.display = 'block'; // Make this specific player visible
+                    audioPlayer.load();
+                    audioPlayer.play();
+
+                } catch (error) {
+                    alert('Sorry, text-to-speech is currently unavailable.');
+                } finally {
+                    revertButton();
+                }
+            };
+
+            const pollStatus = (taskId) => {
+                const interval = setInterval(async() => {
+                    try {
+                        const res = await fetch(`/api/translation_status/${taskId}`);
+                        if (res.status === 404) return;
+                        const data = await res.json();
+
+                        if (data.status === 'completed' || data.status === 'failed') {
+                            clearInterval(interval);
+                            loadingIndicator.style.display = 'none';
+                            resultsContainer.innerHTML = '';
+
+                            if (data.status === 'failed') {
+                                resultsContainer.innerHTML = `<div class="card" style="color:var(--red-500);">${data.result.error}</div>`;
+                                return;
+                            }
+
+                            Object.entries(data.result.translations).forEach(([lang, result]) => {
+                                const langName = languageSelect.querySelector(`option[value="${lang}"]`).textContent;
+                                const card = document.createElement('div');
+                                card.className = 'card'; // Use the main card style
+
+                                let content = '';
+                                if (result.error) {
+                                    content = `<h3 class="card-title">${langName}</h3><p style="color:var(--red-500);">${result.error}</p>`;
+                                } else {
+                                    // --- NEW: Generate a unique ID for the audio player for this language ---
+                                    const audioPlayerId = `audio-player-${lang}`;
+
+                                    content = `
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <h3 class="card-title">${langName}</h3>
+                                            <button class="btn-tts" data-text="${result.translated}" data-player-id="${audioPlayerId}">
+                                                <i class="fas fa-volume-up"></i> Speak
+                                            </button>
+                                        </div>
+                                        <p>${result.translated}</p>
+                                        <audio id="${audioPlayerId}" controls style="width: 100%; margin-top: 1rem; display: none;"></audio>
+                                    `;
+                                }
+                                card.innerHTML = content;
+                                resultsContainer.appendChild(card);
+                            });
+
+                            // --- NEW: Add event listeners to all new "Speak" buttons ---
+                            document.querySelectorAll('.btn-tts').forEach(button => {
+                                button.addEventListener('click', (e) => {
+                                    const currentButton = e.currentTarget;
+                                    const textToSpeak = currentButton.dataset.text;
+                                    const playerId = currentButton.dataset.playerId;
+                                    const audioPlayerElement = document.getElementById(playerId);
+                                    playAudio(textToSpeak, currentButton, audioPlayerElement);
+                                });
+                            });
+                        }
+                    } catch (e) {
+                        clearInterval(interval);
+                        loadingIndicator.style.display = 'none';
+                        resultsContainer.innerHTML = `<div class="card" style="color:var(--red-500);">Error fetching translation status.</div>`;
+                    }
+                }, 3000);
+            };
+
+            translateButton.addEventListener('click', async() => {
+                // This logic for starting the translation is unchanged
+                const languages = Array.from(languageSelect.selectedOptions).map(opt => opt.value);
+                if (languages.length === 0) return alert("Please select at least one language.");
+
+                const file = document.getElementById('file-input').files[0];
+                const text = document.getElementById('text-input').value.trim();
+                if (!file && !text) return alert("Please provide text or upload a file.");
+
+                loadingIndicator.style.display = 'block';
+                resultsContainer.innerHTML = '';
+                const revertButton = addLoadingState(translateButton, 'Translating...');
+
+                try {
+                    const formData = new FormData();
+                    if (file) {
+                        formData.append('file', file);
+                        formData.append('languages', JSON.stringify(languages));
+                    }
+                    const response = await fetch('/api/translate', {
+                        method: 'POST',
+                        body: file ? formData : JSON.stringify({
+                            text,
+                            languages
+                        }),
+                        headers: file ? {} : {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data = await response.json();
+                    if (response.status !== 202) throw new Error(data.error || 'Request failed.');
+                    pollStatus(data.task_id);
+                } catch (error) {
+                    loadingIndicator.style.display = 'none';
+                    resultsContainer.innerHTML = `<p style="color:var(--red-500);">${error.message}</p>`;
+                } finally {
+                    revertButton();
+                }
+            });
+
+            // Active nav link logic
+            const activePage = window.location.pathname;
+            document.querySelectorAll('.navbar-links a').forEach(link => {
+                if (link.getAttribute('href') === activePage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

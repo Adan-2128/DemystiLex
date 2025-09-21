@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lawyer Links - DemystiLex</title>
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand-link">
+                <h1 class="navbar-brand">DemystiLex</h1>
+            </a>
+            <div class="navbar-links">
+                <a href="/demystify">Demystify</a>
+                <a href="/tools">Tools</a>
+                <a href="/lawyer-links">Lawyer Links</a>
+                <a href="/translate">Translate</a>
+                <a href="/chatbot">LexiCounsel</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main class="main-content">
+        <div class="container">
+            <h2 class="section-title">Find Legal Assistance</h2>
+            <p class="card-subtitle" style="margin-bottom: 3rem;">
+                Connect with professional legal services and resources.
+            </p>
+            <div class="grid-container">
+
+                <a href="https://nalsa.gov.in/" target="_blank" class="card-link">
+                    <div class="card feature-card">
+                        <h3 class="card-title">National Legal Services Authority (NALSA)</h3>
+                        <p class="card-description">Provides free legal services to weaker sections of society to ensure opportunities for securing justice are not denied.</p>
+                    </div>
+                </a>
+
+                <a href="https://www.contractlawyers.com" target="_blank" class="card-link">
+                    <div class="card feature-card">
+                        <h3 class="card-title">Contract Law Specialists</h3>
+                        <p class="card-description">Find lawyers specializing in contract drafting, review, and dispute resolution.</p>
+                    </div>
+                </a>
+
+                <a href="httpsa://www.familylaw.com" target="_blank" class="card-link">
+                    <div class="card feature-card">
+                        <h3 class="card-title">Family Law Experts</h3>
+                        <p class="card-description">Access legal experts for matters related to family and divorce law.</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const activePage = window.location.pathname;
+            document.querySelectorAll('.navbar-links a').forEach(link => {
+                if (link.getAttribute('href') === activePage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

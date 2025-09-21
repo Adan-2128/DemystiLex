@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Tools - DemystiLex</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand-link">
+                <h1 class="navbar-brand">DemystiLex</h1>
+            </a>
+            <div class="navbar-links">
+                <a href="/demystify">Demystify</a>
+                <a href="/tools">Tools</a>
+                <a href="/lawyer-links">Lawyer Links</a>
+                <a href="/translate">Translate</a>
+                <a href="/chatbot">LexiCounsel</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2 class="section-title">Legal Analysis Tools</h2>
+            <p class="card-subtitle" style="margin-bottom: 3rem;">
+                Advanced tools to verify, analyze, and create legal documents.
+            </p>
+
+            <div class="grid-container-tools">
+
+                <div class="card tool-card">
+                    <h3 class="card-title"><i class="fas fa-search"></i> E-Stamp Number Finder</h3>
+                    <div class="form-group">
+                        <label for="estamp-file-input">Upload E-Stamped Document (PDF)</label>
+                        <input type="file" id="estamp-file-input" accept=".pdf">
+                    </div>
+                    <button id="verify-estamp-button" class="btn-primary">Find E-Stamp Number</button>
+                    <div id="estamp-results" class="tool-results" style="display:none;"></div>
+                </div>
+
+                <div class="card tool-card">
+                    <h3 class="card-title"><i class="fas fa-balance-scale"></i> Clause Comparison</h3>
+                    <div class="form-group">
+                        <label for="clause-text-input">Paste Document Text</label>
+                        <textarea id="clause-text-input" rows="8" placeholder="Paste your rental agreement text here..."></textarea>
+                    </div>
+                    <button id="compare-clauses-button" class="btn-primary">Analyze Clauses</button>
+                    <div id="clause-results" class="tool-results" style="display:none;"></div>
+                </div>
+
+                <div class="card tool-card">
+                    <h3 class="card-title"><i class="fas fa-calendar-alt"></i> Key Date Extraction</h3>
+                    <div class="form-group">
+                        <label for="dates-file-input">Upload Document to Find Dates</label>
+                        <input type="file" id="dates-file-input" accept=".txt,.pdf">
+                    </div>
+                    <button id="extract-dates-button" class="btn-primary">Extract Dates</button>
+                    <div id="dates-results" class="tool-results" style="display:none;"></div>
+                </div>
+
+                <div class="card tool-card full-width-card">
+                    <h3 class="card-title"><i class="fas fa-file-signature"></i> Guided Document Drafting</h3>
+                    <p class="card-subtitle" style="margin-bottom: 1.5rem;">Create a rental agreement PDF with custom, AI-generated clauses.</p>
+                    <form action="/draft_pdf" method="POST">
+                        <div class="form-grid">
+                            <div class="form-group"><label for="landlord-name">Landlord's Name</label><input type="text" id="landlord-name" name="landlord_name" required></div>
+                            <div class="form-group"><label for="tenant-name">Tenant's Name</label><input type="text" id="tenant-name" name="tenant_name" required></div>
+                            <div class="form-group"><label for="property-address">Full Property Address</label><input type="text" id="property-address" name="property_address" required></div>
+                            <div class="form-group"><label for="rent-amount">Monthly Rent (INR)</label><input type="number" id="rent-amount" name="rent_amount" required></div>
+                            <div class="form-group"><label for="deposit-amount">Security Deposit (INR)</label><input type="number" id="deposit-amount" name="deposit_amount" required></div>
+                            <div class="form-group"><label for="agreement-date">Agreement Date</label><input type="date" id="agreement-date" name="agreement_date"></div>
+                            <div class="form-group"><label for="term-months">Term (in months)</label><input type="number" id="term-months" name="term_months" value="11"></div>
+                        </div>
+                        <hr>
+                        <div class="ai-clause-drafter">
+                            <h4 class="card-title" style="font-size: 1.2rem; margin-top: 1rem;">AI Clause Drafter</h4>
+                            <div class="form-group">
+                                <label for="clause-description-input">Describe the clause you need (e.g., "a clause about no pets allowed")</label>
+                                <input type="text" id="clause-description-input" placeholder="Enter description here...">
+                            </div>
+                            <button type="button" id="draft-clause-button" class="btn-secondary">Draft Clause with AI</button>
+                        </div>
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label for="additional-clauses-textarea">Additional Clauses (Editable)</label>
+                            <textarea id="additional-clauses-textarea" name="additional_clauses" rows="8" placeholder="AI-generated clauses will appear here. You can edit them before creating the PDF."></textarea>
+                        </div>
+                        <hr>
+                        <button type="submit" class="btn-primary">Download PDF with Custom Clauses</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="/static/js/script.js"></script>
+    <script src="/static/js/tools.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const activePage = window.location.pathname;
+            document.querySelectorAll('.navbar-links a').forEach(link => {
+                if (link.getAttribute('href') === activePage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

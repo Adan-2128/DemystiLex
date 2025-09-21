@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login to DemystiLex</title>
+    <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        .navbar .container {
+            justify-content: center;
+        }
+        
+        .navbar-links {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand-link">
+                <h1 class="navbar-brand">DemystiLex</h1>
+            </a>
+            <div class="navbar-links">
+            </div>
+        </div>
+    </nav>
+
+    <main class="form-container">
+        <div class="card form-card">
+            <h2 class="form-title">Login</h2>
+            <div id="feedback-message" class="feedback-message" style="display:none;"></div>
+            <form method="POST" action="/login" id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" id="login-button" class="btn-primary" style="width: 100%;">Login</button>
+            </form>
+            <p style="text-align: center; margin-top: 1.5rem;">Don't have an account? <a href="/register">Register here</a></p>
+        </div>
+    </main>
+
+    <script src="/static/js/script.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('login-form');
+            const loginButton = document.getElementById('login-button');
+            const feedbackMessage = document.getElementById('feedback-message');
+
+            function showFeedback(message, isSuccess = false) {
+                feedbackMessage.textContent = message;
+                feedbackMessage.style.display = 'block';
+                feedbackMessage.className = `feedback-message ${isSuccess ? 'feedback-success' : 'feedback-error'}`;
+            }
+
+            loginForm.addEventListener('submit', async function(event) {
+                event.preventDefault(); // This line prevents the page from navigating away
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                const revertButton = addLoadingState(loginButton, 'Logging in...');
+                try {
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({
+                            username,
+                            password
+                        })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        showFeedback(data.message || 'Login successful!', true);
+                        // This is the part that redirects you
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1000);
+                    } else {
+                        showFeedback(data.error || 'Login failed.');
+                    }
+                } catch (error) {
+                    showFeedback(`Error: Unable to connect to the server.`);
+                } finally {
+                    revertButton();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

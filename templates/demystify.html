@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demystify Document - DemystiLex</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand-link">
+                <h1 class="navbar-brand">DemystiLex</h1>
+            </a>
+            <div class="navbar-links">
+                <a href="/demystify">Demystify</a>
+                <a href="/tools">Tools</a>
+                <a href="/lawyer-links">Lawyer Links</a>
+                <a href="/translate">Translate</a>
+                <a href="/chatbot">LexiCounsel</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main class="main-content" style="flex-grow: 1;">
+        <div class="container" style="max-width: 800px;">
+            <h2 class="section-title">Demystify Your Document</h2>
+            <div class="card">
+                <div class="form-group">
+                    <label for="text-input">Paste Text or Upload Document</label>
+                    <textarea id="text-input" placeholder="Paste your legal document here..." rows="10"></textarea>
+                    <input type="file" id="file-input" accept=".txt,.pdf" style="margin-top: 1rem;">
+                </div>
+                <button id="demystify-button" class="btn-primary">Demystify Document</button>
+            </div>
+            <div id="results-container" class="card" style="display: none; margin-top: 2rem;">
+                <div class="results-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="card-title">Simplified Explanation</h3>
+                        <button id="speak-button" class="btn-tts" title="Speak Explanation"><i class="fas fa-volume-up"></i> Speak</button>
+                    </div>
+                    <p id="explanation-text">Processing...</p>
+                    <audio id="audio-player" controls style="width: 100%; margin-top: 1rem; display: none;"></audio>
+                    <hr>
+                    <h3 class="card-title">Document Mind Map</h3>
+                    <div id="mindmap"></div>
+                    <hr>
+                    <h3 class="card-title">Ask LexiCounsel</h3>
+                    <div id="demystify-chat-history"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="chat-footer">
+        <div class="container" style="max-width: 800px;">
+            <div class="chat-input-container">
+                <strong>LexiCounsel:</strong>
+                <input type="text" id="demystify-chat-input" placeholder="Ask a question about the document...">
+                <button id="demystify-chat-send" class="btn-primary">Send</button>
+            </div>
+        </div>
+    </footer>
+    <script src="/static/js/script.js"></script>
+    <script src="/static/js/mindmap.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Element References ---
+            const demystifyButton = document.getElementById('demystify-button');
+            const resultsContainer = document.getElementById('results-container');
+            const explanationOutput = document.getElementById('explanation-text');
+            const mindmapContainer = document.getElementById('mindmap');
+            const textInput = document.getElementById('text-input');
+            const fileInput = document.getElementById('file-input');
+            const speakButton = document.getElementById('speak-button');
+            const audioPlayer = document.getElementById('audio-player');
+            const chatInput = document.getElementById('demystify-chat-input');
+            const chatSendButton = document.getElementById('demystify-chat-send');
+            const chatHistory = document.getElementById('demystify-chat-history');
+
+            // --- API Helper ---
+            const handleApiResponse = async(response) => {
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'HTTP error');
+                    return data;
+                }
+                alert("Session expired. Please log in again.");
+                window.location.href = '/login';
+                throw new Error("Session expired");
+            };
+
+            // --- Demystify Logic ---
+            demystifyButton.addEventListener('click', async() => {
+                if (!textInput.value.trim() && !fileInput.files[0]) return alert('Please enter text or upload a file.');
+                const revert = addLoadingState(demystifyButton, 'Analyzing...');
+                resultsContainer.style.display = 'block';
+                explanationOutput.innerText = 'Generating explanation...';
+                mindmapContainer.innerHTML = '<p>Generating mind map...</p>';
+                audioPlayer.style.display = 'none'; // Hide old audio player on new demystification
+                chatHistory.innerHTML = ''; // Clear old chat history
+
+                const formData = new FormData();
+                if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
+                else formData.append('text', textInput.value.trim());
+
+                try {
+                    const response = await fetch('/api/demystify', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await handleApiResponse(response);
+                    explanationOutput.innerText = data.explanation || 'No explanation generated.';
+                    if (data.mindmap_data) drawMindMap(mindmapContainer, data.mindmap_data);
+                    else mindmapContainer.innerHTML = '<p>Could not generate a mind map.</p>';
+                } catch (error) {
+                    if (!error.message.includes("Session expired")) explanationOutput.innerText = `Error: ${error.message}`;
+                } finally {
+                    revert();
+                }
+            });
+
+            // --- Text-to-Speech Logic ---
+            speakButton.addEventListener('click', async() => {
+                const textToSpeak = explanationOutput.innerText;
+                if (!textToSpeak || textToSpeak.includes('Processing...')) return alert('Explanation not ready yet.');
+                const revert = addLoadingState(speakButton, '');
+                try {
+                    const response = await fetch('/api/speak', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            text: textToSpeak
+                        }),
+                    });
+                    if (!response.ok) throw new Error("Failed to fetch audio from server.");
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.style.display = 'block';
+                    audioPlayer.play();
+                } catch (error) {
+                    alert("Sorry, text-to-speech is currently unavailable.");
+                } finally {
+                    revert();
+                }
+            });
+
+            // --- Chat Logic ---
+            const addChatMessage = (text, isUser) => {
+                const msgWrapper = document.createElement('div');
+                msgWrapper.className = `chat-message ${isUser ? 'chat-message-user' : 'chat-message-bot'}`;
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble';
+                bubble.textContent = text;
+                msgWrapper.appendChild(bubble);
+                chatHistory.appendChild(msgWrapper);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            };
+            const sendChatMessage = async() => {
+                const question = chatInput.value.trim();
+                if (!question) return;
+                addChatMessage(question, true);
+                chatInput.value = '';
+                const revert = addLoadingState(chatSendButton, '...');
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            question
+                        })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error);
+                    addChatMessage(data.response, false);
+                } catch (error) {
+                    addChatMessage(`Error: ${error.message}`, false);
+                } finally {
+                    revert();
+                }
+            };
+            chatSendButton.addEventListener('click', sendChatMessage);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendChatMessage();
+            });
+
+            // --- Nav Link Logic ---
+            const activePage = window.location.pathname;
+            document.querySelectorAll('.navbar-links a').forEach(link => {
+                if (link.getAttribute('href') === activePage) link.classList.add('active');
+            });
+        });
+    </script>
+</body>
+
+</html>

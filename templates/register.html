@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register for DemystiLex</title>
+    <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        /* This style block centers the navbar content specifically for this page */
+        
+        .navbar .container {
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand-link">
+                <h1 class="navbar-brand">DemystiLex</h1>
+            </a>
+            <div class="navbar-links">
+                <a href="/login">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="form-container">
+        <div class="card form-card">
+            <h2 class="form-title">Register</h2>
+            <div id="feedback-message" class="feedback-message" style="display:none;"></div>
+            <form method="POST" action="/register" id="register-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Create a password" required>
+                </div>
+                <button type="submit" id="register-button" class="btn-primary" style="width: 100%;">Register</button>
+            </form>
+            <p style="text-align: center; margin-top: 1.5rem;">Already have an account? <a href="/login">Login here</a></p>
+        </div>
+    </main>
+
+    <script src="/static/js/script.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const registerForm = document.getElementById('register-form');
+            const registerButton = document.getElementById('register-button');
+            const feedbackMessage = document.getElementById('feedback-message');
+
+            function showFeedback(message, isSuccess = false) {
+                feedbackMessage.textContent = message;
+                feedbackMessage.style.display = 'block';
+                feedbackMessage.className = `feedback-message ${isSuccess ? 'feedback-success' : 'feedback-error'}`;
+            }
+
+            registerForm.addEventListener('submit', async function(event) {
+                event.preventDefault(); // Prevents the browser from navigating to the raw JSON page
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                const revertButton = addLoadingState(registerButton, 'Registering...');
+                try {
+                    const response = await fetch('/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({
+                            username,
+                            password
+                        })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        showFeedback(data.message || 'Registration successful!', true);
+                        // This is the part that redirects you to the login page
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 1000);
+                    } else {
+                        showFeedback(data.error || 'Registration failed.');
+                    }
+                } catch (error) {
+                    showFeedback(`Error: Unable to connect to the server.`);
+                } finally {
+                    revertButton();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

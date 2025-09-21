@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LexiCounsel - DemystiLex</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body style="display: flex; flex-direction: column;">
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand-link">
+                <h1 class="navbar-brand">DemystiLex</h1>
+            </a>
+            <div class="navbar-links">
+                <a href="/demystify">Demystify</a>
+                <a href="/tools">Tools</a>
+                <a href="/lawyer-links">Lawyer Links</a>
+                <a href="/translate">Translate</a>
+                <a href="/chatbot">LexiCounsel</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main class="main-content">
+        <div class="container" style="max-width: 800px;">
+            <h2 class="section-title">LexiCounsel</h2>
+
+            <div id="context-banner" style="display: none; background-color: rgba(59, 130, 246, 0.2); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; text-align: center; border: 1px solid var(--primary-color);">
+                <p style="margin: 0 0 0.5rem 0;"><i class="fas fa-file-alt"></i> You are chatting about a specific document. The AI's answers will be based on its content.</p>
+                <button id="clear-context-btn" class="btn-primary btn-sm">Clear Document Context</button>
+            </div>
+
+            <div class="card" style="height: 70vh; display: flex; flex-direction: column;">
+                <div id="chat-container" style="flex-grow: 1; overflow-y: auto; margin-bottom: 1rem; scroll-behavior: smooth;">
+                    <div class="chat-message chat-message-bot">
+                        <div class="chat-bubble">Hello! I am LexiCounsel. Please demystify a document first to ask specific questions about its content.</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <input type="text" id="chat-input" placeholder="Type your message..." style="flex-grow: 1;" />
+                    <button id="chat-send" class="btn-primary">Send</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="/static/js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatContainer = document.getElementById('chat-container');
+            const chatInput = document.getElementById('chat-input');
+            const chatSend = document.getElementById('chat-send');
+            const contextBanner = document.getElementById('context-banner');
+            const clearContextBtn = document.getElementById('clear-context-btn');
+
+            const checkContext = async() => {
+                try {
+                    const response = await fetch('/api/history');
+                    const history = await response.json();
+                    if (history.length > 0 && history[0].type === 'Demystification') {
+                        contextBanner.style.display = 'block';
+                    } else {
+                        contextBanner.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error("Could not check context:", error);
+                    contextBanner.style.display = 'none';
+                }
+            };
+            checkContext();
+
+            function addMessage(text, isUser) {
+                const msgWrapper = document.createElement('div');
+                msgWrapper.className = isUser ? 'chat-message chat-message-user' : 'chat-message chat-message-bot';
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble';
+                bubble.innerHTML = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+                msgWrapper.appendChild(bubble);
+                chatContainer.appendChild(msgWrapper);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            async function handleSend() {
+                const question = chatInput.value.trim();
+                if (!question) return;
+                addMessage(question, true);
+                chatInput.value = '';
+                const revert = addLoadingState(chatSend, '...');
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            question
+                        })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error);
+                    addMessage(data.response, false);
+                } catch (error) {
+                    addMessage(`Error: ${error.message}`, false);
+                } finally {
+                    revert();
+                }
+            }
+
+            clearContextBtn.addEventListener('click', async() => {
+                try {
+                    await fetch('/api/clear_context', {
+                        method: 'POST'
+                    });
+                    contextBanner.style.display = 'none';
+                    addMessage("Document context has been cleared. Please demystify a new document to begin.", false);
+                } catch (error) {
+                    addMessage("Could not clear context. Please try again.", false);
+                }
+            });
+
+            chatSend.addEventListener('click', handleSend);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                }
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const activePage = window.location.pathname;
+            document.querySelectorAll('.navbar-links a').forEach(link => {
+                if (link.getAttribute('href') === activePage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
