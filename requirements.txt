@@ -1,7 +1,7 @@
 Flask
 Flask-Login
 Flask-Session
-werkzeug
+werkzeug==2.2.2
 python-dotenv
 fpdf2
 google-generativeai
