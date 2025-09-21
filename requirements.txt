@@ -1,8 +1,10 @@
 Flask
 Flask-Login
 Flask-Session
-python-dotenv
+fpdf
 google-generativeai
 gTTS
+gunicorn
 pdfplumber
-fpdf
+python-dotenv
+Werkzeug==2.2.2
