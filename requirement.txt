@@ -1,8 +1,0 @@
-Flask
-Flask-Login
-Flask-Session
-python-dotenv
-google-generativeai
-gTTS
-pdfplumber
-fpdf
