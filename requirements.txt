@@ -2,6 +2,7 @@ Flask
 Flask-Login
 Flask-Session
 werkzeug==2.2.2
+gunicorn
 python-dotenv
 fpdf2
 google-generativeai
